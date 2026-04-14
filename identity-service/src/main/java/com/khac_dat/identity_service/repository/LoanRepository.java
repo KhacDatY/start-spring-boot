@@ -24,7 +24,6 @@ public interface LoanRepository extends JpaRepository<Loan, Integer> {
             "GROUP BY l.book ORDER BY count DESC")
     List<Object[]> findTopBooks();
 
-    // Thống kê độc giả: Đếm số lần member_id xuất hiện trong bảng Loan
     @Query("SELECT l.member, COUNT(l.id) as count FROM Loan l " +
             "GROUP BY l.member ORDER BY count DESC")
     List<Object[]> findTopMembers();

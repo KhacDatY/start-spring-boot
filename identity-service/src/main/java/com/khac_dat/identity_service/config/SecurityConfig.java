@@ -23,12 +23,6 @@ public class SecurityConfig {
             "/users",
             "/auth/log-in",
             "/auth/introspect",
-            "/books",
-            "/books/*",
-            "/members",
-            "/members/*",
-            "/loans",
-            "/loans/**"
     };
 
     @Value("${jwt.signerKey}")
@@ -40,9 +34,6 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(request ->
                 request
                         .requestMatchers(HttpMethod.POST,PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.PUT,PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.GET,PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.DELETE,PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated());
 
 
