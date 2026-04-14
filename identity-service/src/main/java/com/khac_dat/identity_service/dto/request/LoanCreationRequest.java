@@ -1,5 +1,6 @@
 package com.khac_dat.identity_service.dto.request;
 
+import jakarta.persistence.Id;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -8,7 +9,9 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AuthenticationRequest {
-    String username;
-    String password;
+public class LoanCreationRequest {
+
+    String memberId;
+    String bookId;
+
 }
