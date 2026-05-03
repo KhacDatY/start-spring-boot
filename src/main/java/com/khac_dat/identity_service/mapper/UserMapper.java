@@ -1,0 +1,16 @@
+package com.khac_dat.identity_service.mapper;
+
+
+import com.khac_dat.identity_service.dto.request.UserCreationRequest;
+import com.khac_dat.identity_service.dto.request.UserUpdateRequest;
+import com.khac_dat.identity_service.dto.response.UserResponse;
+import com.khac_dat.identity_service.entity.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+
+@Mapper(componentModel = "spring", uses = {RoleMapper.class})
+public interface UserMapper {
+    User toUser(UserCreationRequest request);
+    UserResponse toUserResponse(User user);
+    void updateUser(@MappingTarget User user, UserUpdateRequest request);
+}
