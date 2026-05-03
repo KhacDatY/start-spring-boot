@@ -1,24 +1,23 @@
 package com.khac_dat.identity_service.dto.response;
 
-import jakarta.persistence.Id;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
-import java.util.Set;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
+public class DocumentResponse {
     String id;
-
-    String email;
-    String fullName;
-    LocalDate dob;
-
+    String title;
+    String content;
+    String status;
+    String ownerName;
     String departmentName;
-    Set<RoleReponse> roles;
+    boolean isPublicInDepartment;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
 }

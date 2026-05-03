@@ -2,13 +2,16 @@ package com.khac_dat.identity_service.controller;
 
 import com.khac_dat.identity_service.dto.request.ApiResponse;
 import com.khac_dat.identity_service.dto.request.RoleCreationRequest;
+import com.khac_dat.identity_service.dto.request.RolePermissionRequest;
 import com.khac_dat.identity_service.dto.response.PermissionReponse;
 import com.khac_dat.identity_service.dto.response.RoleReponse;
 import com.khac_dat.identity_service.service.RoleService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,5 +42,15 @@ public class RoleController {
     ApiResponse<Void> delete(@PathVariable String roleId){
         roleService.delete(roleId);
         return ApiResponse.<Void>builder().build();
+    }
+
+    @PutMapping("/{roleId}/permissions")
+    @PreAuthorize("hasAuthority('ROLE_WRITE')")
+    ApiResponse<RoleReponse> updatePermissions(
+            @PathVariable String roleId,
+            @RequestBody RolePermissionRequest request) {
+        return ApiResponse.<RoleReponse>builder()
+                .result(roleService.updatePermissions(roleId, request))
+                .build();
     }
 }

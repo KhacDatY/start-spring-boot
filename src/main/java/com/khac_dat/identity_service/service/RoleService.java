@@ -1,6 +1,7 @@
 package com.khac_dat.identity_service.service;
 
 import com.khac_dat.identity_service.dto.request.RoleCreationRequest;
+import com.khac_dat.identity_service.dto.request.RolePermissionRequest;
 import com.khac_dat.identity_service.dto.response.RoleReponse;
 import com.khac_dat.identity_service.exception.AppException;
 import com.khac_dat.identity_service.exception.ErrorCode;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,9 +29,9 @@ public class RoleService {
     PermissionRepository permissionRepository;
 
     public RoleReponse create(RoleCreationRequest request){
-        // 1. Kiểm tra xem Role Name đã tồn tại chưa
+
         if (roleRepository.existsByName(request.getName())) {
-            throw new AppException(ErrorCode.ROLE_EXISTED); // Nhớ tạo thêm ErrorCode này
+            throw new AppException(ErrorCode.ROLE_EXISTED);
         }
 
         var role = roleMapper.toRole(request);
@@ -51,5 +53,18 @@ public class RoleService {
     }
     public void delete(String roleId){
         roleRepository.deleteById(roleId);
+    }
+
+    public RoleReponse updatePermissions(String roleId, RolePermissionRequest request) {
+        var role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+
+        var permissions = request.getPermissions().stream()
+                .map(pName -> permissionRepository.findByName(pName)
+                        .orElseThrow(() -> new AppException(ErrorCode.PERMISSION_NOT_EXISTED)))
+                .collect(Collectors.toSet());
+
+        role.setPermissions(permissions);
+        return roleMapper.toRoleResponse(roleRepository.save(role));
     }
 }

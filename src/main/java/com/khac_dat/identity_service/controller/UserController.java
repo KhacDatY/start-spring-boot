@@ -58,10 +58,10 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    ApiResponse<UserResponse> updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request){
+    public ApiResponse<UserResponse> updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request){
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateUser(userId , request))
-                .message("Cập nhật thông tin người dùng thành công!")
+                .message("Cập nhật thông tin thành công!")
                 .build();
     }
 

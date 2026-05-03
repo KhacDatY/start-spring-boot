@@ -3,12 +3,14 @@ package com.khac_dat.identity_service.service;
 import com.khac_dat.identity_service.dto.request.UserCreationRequest;
 import com.khac_dat.identity_service.dto.request.UserUpdateRequest;
 import com.khac_dat.identity_service.dto.response.UserResponse;
+import com.khac_dat.identity_service.entity.Department;
 import com.khac_dat.identity_service.entity.Role;
 import com.khac_dat.identity_service.entity.User;
 import com.khac_dat.identity_service.enums.RoleName;
 import com.khac_dat.identity_service.exception.AppException;
 import com.khac_dat.identity_service.exception.ErrorCode;
 import com.khac_dat.identity_service.mapper.UserMapper;
+import com.khac_dat.identity_service.repository.DepartmentRepository;
 import com.khac_dat.identity_service.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,8 @@ import java.util.List;
 
 import com.khac_dat.identity_service.repository.RoleRepository;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +38,7 @@ public class UserService {
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
     RoleRepository roleRepository;
+    DepartmentRepository departmentRepository;
 
     public UserResponse createUser(UserCreationRequest request){
 
@@ -43,6 +48,12 @@ public class UserService {
         User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEnabled(true);
+
+        if (request.getDepartmentId() != null) {
+            Department department = departmentRepository.findById(request.getDepartmentId())
+                    .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_EXISTED));
+            user.setDepartment(department);
+        }
 
         var userRole = roleRepository.findByName(request.getRole())
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
@@ -55,10 +66,29 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-    public UserResponse updateUser(String userId, UserUpdateRequest request){
+    public UserResponse updateUser(String userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
         userMapper.updateUser(user, request);
+
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        if (request.getDepartmentId() != null) {
+            Department dept = departmentRepository.findById(request.getDepartmentId())
+                    .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_EXISTED));
+            user.setDepartment(dept);
+        }
+
+        if (request.getRoleNames() != null && !request.getRoleNames().isEmpty()) {
+            Set<Role> roles = request.getRoleNames().stream()
+                    .map(roleName -> roleRepository.findByName(roleName).orElseThrow())
+                    .collect(Collectors.toSet());
+            user.setRoles(roles);
+        }
+
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
@@ -81,7 +111,6 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    @PostAuthorize("returnObject.email == authentication.name")
     public UserResponse getUser(String userId){
         log.info("Trong method lay user bằng userId");
         User user = userRepository.findById(userId)

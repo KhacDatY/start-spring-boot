@@ -1,22 +1,17 @@
 package com.khac_dat.identity_service.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
-import java.util.Set;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserUpdateRequest {
-
-    String password;
-    String fullName;
-    LocalDate dob;
-
-    String departmentId;
-    Set<String> roleNames;
+public class CreateDocumentRequest {
+    @NotBlank
+    String title;
+    @NotBlank String content;
+    boolean isPublicInDepartment;
 }
