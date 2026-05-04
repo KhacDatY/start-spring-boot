@@ -19,7 +19,7 @@ public class AuthenticationController {
     AuthenticationService authenticationService;
     UserService userService;
 
-    @PostMapping("/login")
+    @PostMapping("/log-in")
     public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request){
         var result = authenticationService.authenticate(request);
         return ApiResponse.<AuthenticationResponse>builder().result(result).build();
@@ -31,7 +31,7 @@ public class AuthenticationController {
         return ApiResponse.<AuthenticationResponse>builder().result(result).build();
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/log-out")
     public ApiResponse<Void> logout(@RequestBody RefreshTokenRequest request) {
         authenticationService.logout(request);
         return ApiResponse.<Void>builder().message("Đăng xuất thành công").build();
