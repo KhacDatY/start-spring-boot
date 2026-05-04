@@ -21,8 +21,8 @@ import java.util.List;
 @Slf4j
 public class PermissionService {
 
-    PermissionRepository permissionRepository;
-    PermissionMapper permissionMapper;
+    private final PermissionRepository permissionRepository;
+    private final PermissionMapper permissionMapper;
 
     public PermissionReponse create(PermissionCreationRequest request){
         if (permissionRepository.existsByName(request.getName())) {

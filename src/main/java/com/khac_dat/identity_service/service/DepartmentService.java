@@ -18,8 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DepartmentService {
-    DepartmentRepository departmentRepository;
-    DepartmentMapper departmentMapper;
+    private final DepartmentRepository departmentRepository;
+    private final DepartmentMapper departmentMapper;
 
     public DepartmentResponse create(DepartmentRequest request) {
         if (departmentRepository.existsByName(request.getName())) {
@@ -39,5 +39,12 @@ public class DepartmentService {
                 .orElseThrow(() -> new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION));
         departmentMapper.updateDepartment(dept, request);
         return departmentMapper.toDepartmentResponse(departmentRepository.save(dept));
+    }
+
+    public void delete(String id) {
+        if (!departmentRepository.existsById(id)) {
+            throw new AppException(ErrorCode.DEPARTMENT_NOT_EXISTED);
+        }
+        departmentRepository.deleteById(id);
     }
 }

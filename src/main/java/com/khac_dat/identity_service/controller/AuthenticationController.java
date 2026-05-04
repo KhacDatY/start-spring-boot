@@ -1,45 +1,40 @@
 package com.khac_dat.identity_service.controller;
 
-import com.khac_dat.identity_service.dto.request.ApiResponse;
-import com.khac_dat.identity_service.dto.request.AuthenticationRequest;
-import com.khac_dat.identity_service.dto.request.IntrospectRequest;
+import com.khac_dat.identity_service.dto.request.*;
 import com.khac_dat.identity_service.dto.response.AuthenticationResponse;
-import com.khac_dat.identity_service.dto.response.IntrospectResponse;
+import com.khac_dat.identity_service.dto.response.UserResponse;
 import com.khac_dat.identity_service.service.AuthenticationService;
-import com.nimbusds.jose.JOSEException;
+import com.khac_dat.identity_service.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.text.ParseException;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
 
     AuthenticationService authenticationService;
-    @PostMapping("/log-in")
+    UserService userService;
+
+    @PostMapping("/login")
     public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request){
         var result = authenticationService.authenticate(request);
-        return ApiResponse.<AuthenticationResponse>builder()
-                .result(result)
-                .build();
-
+        return ApiResponse.<AuthenticationResponse>builder().result(result).build();
     }
 
-    @PostMapping("/introspect")
-    public ApiResponse<IntrospectResponse> authenticate(@RequestBody IntrospectRequest request)
-            throws JOSEException, ParseException {
-        var result = authenticationService.introspect(request);
-        return ApiResponse.<IntrospectResponse>builder()
-                .result(result)
-                .build();
-
+    @PostMapping("/refresh")
+    public ApiResponse<AuthenticationResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+        var result = authenticationService.refreshToken(request);
+        return ApiResponse.<AuthenticationResponse>builder().result(result).build();
     }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(@RequestBody RefreshTokenRequest request) {
+        authenticationService.logout(request);
+        return ApiResponse.<Void>builder().message("Đăng xuất thành công").build();
+    }
+
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -25,6 +26,7 @@ public class RoleController {
     RoleService roleService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or hasAuthority('ROLE_WRITE')")
     ApiResponse<RoleReponse> create(@RequestBody RoleCreationRequest request){
         return ApiResponse.<RoleReponse>builder()
                 .result(roleService.create(request))
@@ -32,6 +34,7 @@ public class RoleController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or hasAuthority('ROLE_READ')")
     ApiResponse<List<RoleReponse>> getAll(){
         return ApiResponse.<List<RoleReponse>>builder()
                 .result(roleService.getAll())
@@ -39,13 +42,14 @@ public class RoleController {
     }
 
     @DeleteMapping("/{roleId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or hasAuthority('ROLE_WRITE')")
     ApiResponse<Void> delete(@PathVariable String roleId){
         roleService.delete(roleId);
         return ApiResponse.<Void>builder().build();
     }
 
     @PutMapping("/{roleId}/permissions")
-    @PreAuthorize("hasAuthority('ROLE_WRITE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or hasAuthority('ROLE_WRITE')")
     ApiResponse<RoleReponse> updatePermissions(
             @PathVariable String roleId,
             @RequestBody RolePermissionRequest request) {

@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class RoleService {
-    RoleRepository roleRepository;
-    RoleMapper roleMapper;
-    PermissionRepository permissionRepository;
+    private final RoleRepository roleRepository;
+    private final RoleMapper roleMapper;
+    private final PermissionRepository permissionRepository;
 
     public RoleReponse create(RoleCreationRequest request){
 

@@ -34,7 +34,10 @@ public enum ErrorCode {
     CANNOT_APPROVE_OWN_DOCUMENT(1018, "Không thể tự phê duyệt tài liệu do chính mình tạo", HttpStatus.BAD_REQUEST),
     INVALID_DOCUMENT_STATUS(1019, "Trạng thái tài liệu không hợp lệ cho thao tác này", HttpStatus.BAD_REQUEST),
     DOCUMENT_ALREADY_SHARED(1020, "Tài liệu đã được chia sẻ cho đối tượng này từ trước", HttpStatus.BAD_REQUEST),
-    ;
+
+    REFRESH_TOKEN_INVALID(1021, "Refresh token không hợp lệ hoặc không tồn tại", HttpStatus.UNAUTHORIZED),
+    REFRESH_TOKEN_EXPIRED(1022, "Refresh token đã hết hạn, vui lòng đăng nhập lại", HttpStatus.UNAUTHORIZED),
+    REFRESH_TOKEN_REVOKED(1023, "Refresh token đã bị thu hồi hoặc đã đăng xuất", HttpStatus.UNAUTHORIZED),
     ;
     private int code;
     private String message;

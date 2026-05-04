@@ -2,13 +2,18 @@ package com.khac_dat.identity_service.service;
 
 import com.khac_dat.identity_service.dto.request.AuthenticationRequest;
 import com.khac_dat.identity_service.dto.request.IntrospectRequest;
+import com.khac_dat.identity_service.dto.request.RefreshTokenRequest;
 import com.khac_dat.identity_service.dto.response.AuthenticationResponse;
 import com.khac_dat.identity_service.dto.response.IntrospectResponse;
+import com.khac_dat.identity_service.entity.RefreshToken;
 import com.khac_dat.identity_service.entity.Role;
 import com.khac_dat.identity_service.entity.User;
+import com.khac_dat.identity_service.enums.AuditAction;
 import com.khac_dat.identity_service.exception.AppException;
 import com.khac_dat.identity_service.exception.ErrorCode;
 import com.khac_dat.identity_service.repository.UserRepository;
+import com.khac_dat.identity_service.security.jwt.JwtTokenProvider;
+import com.khac_dat.identity_service.security.jwt.RefreshTokenService;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -36,8 +41,11 @@ import java.util.*;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public class AuthenticationService {
-    UserRepository userRepository;
-    PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
+    private final AuditLogService auditLogService;
 
 
     @NonFinal
@@ -66,66 +74,40 @@ public class AuthenticationService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
-
-        if(!authenticated || !user.isEnabled())
+        if(!authenticated || !user.isEnabled()) {
+            auditLogService.logAction(AuditAction.LOGIN_FAILED, "USER", request.getEmail(), "Sai mật khẩu hoặc tài khoản bị khóa");
             throw new AppException(ErrorCode.UNAUTHENTICATED);
-
-        try {
-            // Bắt buộc phải có try-catch ở đây vì generateToken ném ra KeyLengthException
-            var token = generateToken(user);
-
-            return AuthenticationResponse.builder()
-                    .token(token)
-                    .authenticated(true)
-                    .build();
-        } catch (KeyLengthException e) {
-            // Log lỗi và ném ra một RuntimeException để Spring xử lý
-            log.error("Key length is insufficient for HS512", e);
-            throw new RuntimeException("Internal Server Error: Security key issues", e);
         }
 
+        var token = jwtTokenProvider.generateToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+
+        auditLogService.logAction(AuditAction.LOGIN_SUCCESS, "USER", user.getId(), "Đăng nhập thành công");
+        return AuthenticationResponse.builder()
+                .token(token)
+                .refreshToken(refreshToken.getToken())
+                .authenticated(true)
+                .build();
     }
 
-    private String generateToken(User user) throws KeyLengthException {
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request) {
+        return refreshTokenService.findByToken(request.getRefreshToken())
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                    String token = jwtTokenProvider.generateToken(user);
+                    return AuthenticationResponse.builder()
+                            .token(token)
+                            .refreshToken(request.getRefreshToken())
+                            .authenticated(true)
+                            .build();
+                })
+                .orElseThrow(() -> new AppException(ErrorCode.REFRESH_TOKEN_INVALID));
+    }
 
-        List<String> roles = user.getRoles().stream()
-                .map(Role::getName)
-                .toList();
-
-        Set<String> permissions = new HashSet<>();
-        if (!CollectionUtils.isEmpty(user.getRoles())) {
-            user.getRoles().forEach(role -> {
-                if (!CollectionUtils.isEmpty(role.getPermissions())) {
-                    role.getPermissions().forEach(permission ->
-                            permissions.add(permission.getName())
-                    );
-                }
-            });
-        }
-
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getEmail())
-                .issuer("khacdat.com")
-                .issueTime(new Date())
-                .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
-                ))
-                .jwtID(UUID.randomUUID().toString())
-                .claim("roles", roles)             // Nạp mảng roles
-                .claim("permissions", permissions) // Nạp mảng permissions
-                .build();
-
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-        JWSObject jwsObject = new JWSObject(header, payload);
-
-        try {
-            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
-            return jwsObject.serialize();
-        } catch (JOSEException e) {
-            log.error("Cannot create token", e);
-            throw new RuntimeException(e);
-        }
+    public void logout(RefreshTokenRequest request) {
+        auditLogService.logAction(AuditAction.LOGOUT, "USER", null, "Đăng xuất khỏi hệ thống");
+        refreshTokenService.revokeToken(request.getRefreshToken());
     }
 
 

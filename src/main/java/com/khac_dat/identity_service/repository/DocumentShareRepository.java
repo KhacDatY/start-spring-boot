@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DocumentShareRepository extends JpaRepository<DocumentShare, String> {
+    boolean existsByDocument_IdAndSharedWithUser_Id(String documentId, String userId);
+    boolean existsByDocument_IdAndSharedWithDepartment_Id(String documentId, String departmentId);
 }

@@ -6,6 +6,7 @@ import com.khac_dat.identity_service.dto.response.UserResponse;
 import com.khac_dat.identity_service.entity.Department;
 import com.khac_dat.identity_service.entity.Role;
 import com.khac_dat.identity_service.entity.User;
+import com.khac_dat.identity_service.enums.AuditAction;
 import com.khac_dat.identity_service.enums.RoleName;
 import com.khac_dat.identity_service.exception.AppException;
 import com.khac_dat.identity_service.exception.ErrorCode;
@@ -34,11 +35,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
 
-    UserRepository userRepository;
-    UserMapper userMapper;
-    PasswordEncoder passwordEncoder;
-    RoleRepository roleRepository;
-    DepartmentRepository departmentRepository;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
+    private final DepartmentRepository departmentRepository;
+
+    private final AuditLogService auditLogService;
 
     public UserResponse createUser(UserCreationRequest request){
 
@@ -89,6 +92,7 @@ public class UserService {
             user.setRoles(roles);
         }
 
+        auditLogService.logAction(AuditAction.ROLE_CHANGED, "USER", user.getId(), "Quản trị viên đã thay đổi thông tin của người dùng");
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
@@ -97,7 +101,6 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers(){
         log.info("dang trong method");
         return userRepository.findAll().stream()
