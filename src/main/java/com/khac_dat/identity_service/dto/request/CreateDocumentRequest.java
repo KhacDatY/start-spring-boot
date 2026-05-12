@@ -12,6 +12,7 @@ import lombok.experimental.FieldDefaults;
 public class CreateDocumentRequest {
     @NotBlank
     String title;
-    @NotBlank String content;
-    boolean isPublicInDepartment;
+    @NotBlank
+    String content;
+    boolean publicInDepartment;
 }

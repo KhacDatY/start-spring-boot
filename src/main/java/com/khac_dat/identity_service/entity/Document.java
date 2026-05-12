@@ -34,7 +34,7 @@ public class Document {
     @JoinColumn(name = "department_id")
     Department department;
 
-    boolean isPublicInDepartment;
+    boolean publicInDepartment;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }

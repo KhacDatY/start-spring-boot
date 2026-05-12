@@ -16,6 +16,7 @@ import com.khac_dat.identity_service.repository.DepartmentRepository;
 import com.khac_dat.identity_service.repository.DocumentRepository;
 import com.khac_dat.identity_service.repository.DocumentShareRepository;
 import com.khac_dat.identity_service.repository.UserRepository;
+import com.khac_dat.identity_service.security.permission.DocumentSecurityService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -35,8 +36,10 @@ public class DocumentService {
 
     private final DocumentShareRepository documentShareRepository;
     private final DepartmentRepository departmentRepository;
+    private final DocumentSecurityService documentSecurityService;
 
     private final AuditLogService auditLogService;
+
 
     public DocumentResponse create(CreateDocumentRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -46,7 +49,7 @@ public class DocumentService {
         Document doc = Document.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .isPublicInDepartment(request.isPublicInDepartment())
+                .publicInDepartment(request.isPublicInDepartment())
                 .owner(owner)
                 .department(owner.getDepartment())
                 .status(DocumentStatus.DRAFT)
@@ -58,7 +61,9 @@ public class DocumentService {
     }
 
     public List<DocumentResponse> getAllDocuments() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
         return documentRepository.findAll().stream()
+                .filter(doc -> documentSecurityService.canAccess(doc.getId(), auth))
                 .map(documentMapper::toDocumentResponse)
                 .toList();
     }

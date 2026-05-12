@@ -30,7 +30,6 @@ public class DocumentController {
     @GetMapping
     @PreAuthorize("hasAuthority('DOC_READ')")
     public ApiResponse<List<DocumentResponse>> getAll() {
-        // Lưu ý: Bạn cần tạo hàm getAllDocuments() trong DocumentService
         return ApiResponse.<List<DocumentResponse>>builder()
                 .result(documentService.getAllDocuments())
                 .build();

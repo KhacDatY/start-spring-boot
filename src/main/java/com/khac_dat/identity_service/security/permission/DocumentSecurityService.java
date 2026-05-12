@@ -23,8 +23,8 @@ public class DocumentSecurityService {
 
         if (hasRole(auth, "SUPER_ADMIN") || hasRole(auth, "ADMIN")) return true;
 
-        if (hasRole(auth, "MANAGER")) {
-            return doc.getDepartment().getId().equals(currentUser.getDepartment().getId());
+        if (hasRole(auth, "MANAGER") && doc.getDepartment().getId().equals(currentUser.getDepartment().getId())) {
+            return true;
         }
 
         boolean isOwner = doc.getOwner().getId().equals(currentUser.getId());

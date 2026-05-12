@@ -17,7 +17,7 @@ public class DocumentResponse {
     String status;
     String ownerName;
     String departmentName;
-    boolean isPublicInDepartment;
+    boolean publicInDepartment;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }
