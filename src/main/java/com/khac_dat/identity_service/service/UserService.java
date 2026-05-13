@@ -58,13 +58,19 @@ public class UserService {
             user.setDepartment(department);
         }
 
+        HashSet<Role> roles = new HashSet<>();
+
         var userRole = roleRepository.findByName(request.getRole())
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
-        var roleUser = roleRepository.findByName(RoleName.EMPLOYEE.name())
-                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
-        HashSet<Role> roles = new HashSet<>();
-        roles.add(roleUser);
+
         roles.add(userRole);
+
+        if(!request.getRole().equals(RoleName.AUDITOR.name())){
+            var roleUser = roleRepository.findByName(RoleName.EMPLOYEE.name())
+                    .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+            roles.add(roleUser);
+        }
+
         user.setRoles(roles);
         return userMapper.toUserResponse(userRepository.save(user));
     }
